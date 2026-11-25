@@ -1,0 +1,16 @@
+resources:
+  jobs:
+    banking_pipeline_daily_10pm:
+      name: banking-pipeline-daily-10pm
+
+      tasks:
+        - task_key: pipeline_task
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.banking_pipeline.id}
+
+      schedule:
+        quartz_cron_expression: '0 0 22 * * ? *'
+        timezone_id: Asia/Calcutta
+        pause_status: UNPAUSED
+
+      max_concurrent_runs: 1

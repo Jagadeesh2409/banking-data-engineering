@@ -1,0 +1,18 @@
+bundle:
+  name: banking-data-engineering
+
+include:
+  - resources/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog for the pipeline tables
+    default: banking
+  schema:
+    description: Target schema for Bronze layer ingestion
+    default: bronze
+
+targets:
+  dev:
+    default: true
+    mode: development

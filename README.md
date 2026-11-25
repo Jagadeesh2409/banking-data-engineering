@@ -281,35 +281,38 @@ The project produced the following analytical observations from the processed da
 
 ## Project Structure
 
-The repository structure may be organized as follows:
+The repository structure is:
 
 ```text
 banking-data-engineering/
 │
-├── pipelines/
-│   ├── bronze/
-│   │   ├── bank_data.py
-│   │   ├── customer_data.py
-│   │   └── transaction_data.py
-│   │
-│   ├── silver/
-│   │   ├── bank_data.py
-│   │   ├── customer_data.py
-│   │   └── transaction_data.py
-│   │
-│   └── gold/
-│       ├── branch_performance.py
-│       ├── customer_analytics.py
-│       └── transaction_analytics.py
+├── databricks.yml
 │
-├── sql/
-│   ├── validation_queries.sql
-│   └── analytics_queries.sql
+├── resources/
+│   ├── banking_pipeline.pipeline.yml
+│   └── banking_pipeline_daily_10pm.job.yml
+│
+├── Pipeline/
+│   └── transformations/
+│       ├── bronze/
+│       │   ├── banking_data_bronze.py
+│       │   ├── customer_data_bronze.py
+│       │   └── transaction_data_bronze.py
+│       │
+│       ├── silver/
+│       │   ├── banking_data_silver.py
+│       │   ├── customer_data_silver.py
+│       │   └── transaction_data_silver.py
+│       │
+│       └── gold/
+│           ├── branch_performance_gold.py
+│           ├── customer_analytics_gold.py
+│           └── transaction_analytics_gold.py
 │
 └── README.md
 ```
 
-*The structure above is a suggested repository organization. Adjust it to match your actual files.*
+*The bundle deployment files (`databricks.yml`, `resources/`) define the pipeline and its scheduled job as code.*
 
 ## Pipeline Workflow
 
@@ -322,6 +325,31 @@ banking-data-engineering/
 7. Create Gold analytical tables.
 8. Validate the Gold datasets using SQL.
 9. Perform business analysis on the resulting datasets.
+10. Refresh the pipeline daily at 22:00 using the scheduled job.
+
+## Orchestration and Scheduling
+
+The pipeline is orchestrated by the Databricks job `banking-pipeline-daily-10pm`, defined in `resources/banking_pipeline_daily_10pm.job.yml`.
+
+- Triggers a full update of the banking pipeline every day at 22:00 (Asia/Calcutta timezone).
+- The job's single task runs the pipeline update, so a failed update marks the job run as failed.
+- Scheduling the job allows unattended daily refreshes without manual runs.
+
+## Deployment — Declarative Automation Bundle
+
+The project is packaged as a Declarative Automation Bundle, so the pipeline and its scheduling job are deployed together from source control.
+
+- `databricks.yml` defines the bundle name, variables (catalog `banking`, Bronze schema `bronze`) and a `dev` development target.
+- `resources/banking_pipeline.pipeline.yml` defines the Spark Declarative Pipeline: serverless compute, Photon, Auto Loader libraries from `Pipeline/transformations/`.
+- `resources/banking_pipeline_daily_10pm.job.yml` defines the daily 10 PM scheduling job.
+
+Common bundle commands, run from the repository root:
+
+```text
+databricks bundle validate --target dev
+databricks bundle deploy --target dev
+databricks bundle run banking_pipeline_daily_10pm --target dev
+```
 
 ## Key Learnings
 
@@ -338,12 +366,11 @@ banking-data-engineering/
 
 ## Future Enhancements
 
-- Implement pipeline orchestration and scheduling.
 - Add pipeline monitoring and alerting.
 - Implement automated data quality reporting.
 - Develop BI dashboards using Power BI.
 - Implement incremental processing optimizations in downstream layers.
-- Add automated deployment and CI/CD.
+- Extend the bundle with CI/CD automation, for example GitHub Actions deployments.
 - Implement stronger data governance and access controls.
 
 ## Author

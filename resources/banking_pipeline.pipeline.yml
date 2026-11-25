@@ -1,0 +1,20 @@
+resources:
+  pipelines:
+    banking_pipeline:
+      name: banking-pipeline
+
+      catalog: ${var.catalog}
+      target: ${var.schema}
+
+      libraries:
+        - glob:
+            include: ../Pipeline/transformations/**
+
+      root_path: ../Pipeline
+
+      serverless: true
+      photon: true
+
+      continuous: false
+
+      channel: CURRENT
